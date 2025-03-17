@@ -19,7 +19,7 @@ jobs:
 
     - name: Build and start Docker Compose services
       run: |
-        docker-compose up -d --build
+        docker compose up -d --build
 
     - name: Wait and verify wikiless logs
       id: log-check
@@ -52,4 +52,4 @@ jobs:
     - name: Stop Docker Compose services
       if: always()
       run: |
-        docker-compose down
+        docker compose down
