@@ -1,0 +1,50 @@
+name: check-latest-commit
+
+on:
+  schedule:
+    - cron: '26 1 4,18 * *' #build bi-weekly
+  workflow_dispatch:
+
+jobs:
+  check-and-update-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }} #needed for unattended trigger of next action
+
+      - name: Get the latest commit from wikiless repository
+        run: |
+          latest_commit=$(curl -s https://github.com/Metastem/Wikiless/commits/main | grep -oP '(?<=href="/Metastem/Wikiless/commit/)[a-f0-9]{40}' | head -n 1)
+          echo "Latest commit: $latest_commit"
+          echo "LATEST_COMMIT=$latest_commit" >> $GITHUB_ENV
+        id: get_commit
+
+      - name: Check the current commit in the file
+        id: check_commit
+        run: |
+          if [ -f latest_commit.txt ]; then
+            stored_commit=$(cat latest_commit.txt)
+            echo "Stored commit: $stored_commit"
+          else
+            stored_commit=""
+          fi
+          echo "STORED_COMMIT=$stored_commit" >> $GITHUB_ENV
+
+      - name: Update commit if there is a newer version
+        if: env.STORED_COMMIT != env.LATEST_COMMIT
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          echo "$LATEST_COMMIT" > latest_commit.txt
+          git add latest_commit.txt
+          git commit -m "Update latest commit to ${{ steps.get_commit.outputs.latest_commit }}"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: No update needed
+        if: env.STORED_COMMIT == env.LATEST_COMMIT
+        run: echo "No new commits. Nothing to update."

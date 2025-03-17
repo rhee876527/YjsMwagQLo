@@ -1,0 +1,55 @@
+name: Docker App CI
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build and start Docker Compose services
+      run: |
+        docker-compose up -d --build
+
+    - name: Wait and verify wikiless logs
+      id: log-check
+      run: |
+        echo "Wait for wikiless to print success log..."
+        TIMEOUT=60  # Maximum wait time in seconds
+        INTERVAL=2  # Check every 2 seconds
+        ELAPSED=0
+
+        until docker logs wikiless 2>&1 | grep -q "running on http://0.0.0.0:8080"; do
+          if [ $ELAPSED -ge $TIMEOUT ]; then
+            echo "Error: Timeout ($TIMEOUT seconds) reached waiting for wikiless"
+            LOGS=$(docker logs wikiless 2>&1)
+            echo "$LOGS"
+            echo "log_found=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          echo "Waiting... ($ELAPSED/$TIMEOUT seconds)"
+          sleep $INTERVAL
+          ELAPSED=$((ELAPSED + INTERVAL))
+        done
+
+        # Once the message is found, verify and set output
+        LOGS=$(docker logs wikiless 2>&1)
+        echo "Wikiless logs:"
+        echo "$LOGS"
+        echo "Success: Found expected log message"
+        echo "log_found=true" >> $GITHUB_OUTPUT
+
+    - name: Stop Docker Compose services
+      if: always()
+      run: |
+        docker-compose down
