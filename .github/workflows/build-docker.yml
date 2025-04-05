@@ -37,7 +37,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/refs/heads/main/Dockerfile          
+          file: https://raw.githubusercontent.com/${{ github.repository }}/refs/heads/${{ github.ref_name }}/Dockerfile          
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/${{ env.PACKAGE_NAME }}
           platforms: linux/arm64
