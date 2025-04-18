@@ -2,7 +2,7 @@ name: check-latest-commit
 
 on:
   schedule:
-    - cron: '26 1 4,18 * *' #build bi-weekly
+    - cron: '29 2 4,18 * *' #build bi-weekly
   workflow_dispatch:
 
 jobs:
@@ -17,7 +17,7 @@ jobs:
 
       - name: Get the latest commit from wikiless repository
         run: |
-          latest_commit=$(curl -s https://github.com/Metastem/Wikiless/commits/main | grep -oP '(?<=href="/Metastem/Wikiless/commit/)[a-f0-9]{40}' | head -n 1)
+          latest_commit=$(curl -s --retry 5 --retry-delay 10 --retry-max-time 60 https://github.com/Metastem/Wikiless/commits/main | grep -oP '(?<=href="/Metastem/Wikiless/commit/)[a-f0-9]{40}' | head -n 1)
           echo "Latest commit: $latest_commit"
           echo "LATEST_COMMIT=$latest_commit" >> $GITHUB_ENV
         id: get_commit
