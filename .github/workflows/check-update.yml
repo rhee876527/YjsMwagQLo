@@ -40,7 +40,7 @@ jobs:
           git config --global user.email "action@github.com"
           echo "$LATEST_COMMIT" > latest_commit.txt
           git add latest_commit.txt
-          git commit -m "Update latest commit to ${{ steps.get_commit.outputs.latest_commit }}"
+          git commit -m "Update latest commit to ${{ env.LATEST_COMMIT }}"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
