@@ -27,7 +27,7 @@ jobs:
       id: log-check
       run: |
         echo "Wait for wikiless to print success log..."
-        TIMEOUT=60  # Maximum wait time in seconds
+        TIMEOUT=15  # Maximum wait time in seconds
         INTERVAL=2  # Check every 2 seconds
         ELAPSED=0
 
